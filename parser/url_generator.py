@@ -1,4 +1,4 @@
-from options import status_data, procurement_type_data, regions_data
+from common.options import status_data, procurement_type_data, regions_data
 
 
 async def get_url(data):
