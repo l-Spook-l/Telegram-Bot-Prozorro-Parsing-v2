@@ -67,6 +67,16 @@ async def create_new_request(message: types.Message, state: FSMContext):
     await state.set_state(AddTenders.DK021_2015)
 
 
+@client_router.message(StateFilter("*"), Command("Відміна"))
+@client_router.message(StateFilter("*"), F.text.casefold() == "відміна")
+async def cancel_handler(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+    await state.clear()
+    await message.reply('Додавання нового запиту скасовано', reply_markup=action_menu_markup)
+
+
 @client_router.message(AddTenders.DK021_2015, F.text)
 async def DK021_2015(message: types.Message, state: FSMContext):
     # Pattern for checking the DK021_2015 code
