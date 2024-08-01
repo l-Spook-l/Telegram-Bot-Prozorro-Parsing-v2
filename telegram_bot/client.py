@@ -16,7 +16,8 @@ from aiogram.fsm.context import FSMContext
 from .client_buttons import action_menu_markup, skip_cancel_markup
 from common.options import status_data, procurement_type_data, regions_data
 
-from data_base.operations import sql_add_data, sql_read, sql_delete_data, sql_read_for_del
+# from data_base.operations import sql_add_data, sql_read, sql_delete_data, sql_read_for_del
+from data_base.operations import orm_add_data, orm_read
 
 client_router = Router()
 
@@ -165,10 +166,29 @@ async def dispatch_time(message: types.Message, state: FSMContext):
 async def email(message: types.Message, state: FSMContext):
     await state.update_data(Email=message.text.lower())
     data = await state.get_data()
-    success = await sql_add_data(data)
+    success = await orm_add_data(data)
     if success:
         await message.answer('Новий запит успішно додано', reply_markup=action_menu_markup)
     else:
         await message.answer('Виникла внутрішня помилка, будь ласка спробуйте пізніше',
                              reply_markup=action_menu_markup)
     await state.clear()
+
+
+@client_router.message(F.text.casefold() == "ваші запити")
+async def list_requests(message: types.Message):
+    await message.reply('Список ваших запитів')
+    get_data = await orm_read(message)
+    if get_data:
+        for user_settings in get_data:
+            await message.answer(
+                                   f'ДК021:2015: {user_settings.DK021_2015}\nСтатус: {user_settings.Status}\n'
+                                   f'Вид закупівлі: {user_settings.Procurement_type}\nРегіон: {user_settings.Region}'
+                                   f'\nЧас відправки: {user_settings.Dispatch_time}\nПошта: {user_settings.Email}')
+    elif len(get_data) == 0:
+        await message.answer('У вас нема створених запитів.',
+                             reply_markup=action_menu_markup)
+    else:
+        await message.answer('Виникла внутрішня помилка, будь ласка спробуйте пізніше',
+                             reply_markup=action_menu_markup)
+
