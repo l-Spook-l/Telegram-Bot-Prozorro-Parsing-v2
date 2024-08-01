@@ -77,6 +77,21 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     await message.reply('Додавання нового запиту скасовано', reply_markup=action_menu_markup)
 
 
+@client_router.message(StateFilter("*"), Command("назад"))
+@client_router.message(StateFilter("*"), F.text.casefold() == "назад")
+async def cancel_handler(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state == AddTenders.DK021_2015:
+        await message.answer("Це перший пункт, що потрібно заповнити, введіть код або натисніть кнопку відміна")
+
+    previous = None
+    for step in AddTenders.__all_states__:
+        if step.state == current_state:
+            await state.set_state(previous)
+            await message.answer(f"Ви повернулись до попереднього шагу. \n{AddTenders.texts[previous.state]}")
+        previous = step
+
+
 @client_router.message(AddTenders.DK021_2015, F.text)
 async def DK021_2015(message: types.Message, state: FSMContext):
     # Pattern for checking the DK021_2015 code
