@@ -7,14 +7,15 @@
 # from config import bot
 # from .client_buttons import action_menu_markup, skip_cancel_markup
 # from options import status_data, procurement_type_data, regions_data
-import re
 
+import re
 from aiogram import types, Router, F
 from aiogram.filters import CommandStart, Command, StateFilter
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
 from .client_buttons import action_menu_markup, skip_cancel_markup
 from common.options import status_data, procurement_type_data, regions_data
+
 from data_base.operations import sql_add_data, sql_read, sql_delete_data, sql_read_for_del
 
 client_router = Router()
@@ -94,13 +95,13 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 
 @client_router.message(AddTenders.DK021_2015, F.text)
 async def DK021_2015(message: types.Message, state: FSMContext):
-    # Pattern for checking the DK021_2015 code
+    """Pattern for checking the DK021_2015 code"""
     pattern = r'^\d{8}-\d{1,3}$'
     DK021_2015_input = [code.strip() for code in message.text.lower().split(',')]
     valid_code = [code for code in DK021_2015_input if re.match(pattern, code) or code == 'пропустити']
     if valid_code:
         await state.update_data(user=message.from_user.id)
-        await state.update_data(DK021_2015=valid_code)
+        await state.update_data(DK021_2015=', '.join(valid_code))
         await message.answer('Введіть статус')
         await state.set_state(AddTenders.Status)
     else:
@@ -113,7 +114,7 @@ async def status(message: types.Message, state: FSMContext):
     status_input = message.text.lower().split(', ')
     valid_statuses = [status for status in status_input if status in status_data or status == 'пропустити']
     if valid_statuses:
-        await state.update_data(Status=valid_statuses)
+        await state.update_data(Status=', '.join(valid_statuses))
         await message.answer('Введіть вид закупівлі')
         await state.set_state(AddTenders.Procurement_type)
     else:
@@ -128,7 +129,7 @@ async def procurement_type(message: types.Message, state: FSMContext):
     valid_procurement_types = [procurement_type for procurement_type in procurement_type_input if
                                procurement_type in procurement_type_data or procurement_type == 'пропустити']
     if valid_procurement_types:
-        await state.update_data(Procurement_type=valid_procurement_types)
+        await state.update_data(Procurement_type=', '.join(valid_procurement_types))
         await message.answer('Оберіть потрібний регіон')
         await state.set_state(AddTenders.Region)
     else:
@@ -141,7 +142,7 @@ async def region(message: types.Message, state: FSMContext):
     region_input = message.text.lower().split(', ')
     valid_region = [region for region in region_input if region in regions_data or region == 'пропустити']
     if valid_region:
-        await state.update_data(Region=valid_region)
+        await state.update_data(Region=', '.join(valid_region))
         await message.answer('Введіть час відправлення повідомлення на електронну пошту')
         await state.set_state(AddTenders.Dispatch_time)
     else:
@@ -151,12 +152,11 @@ async def region(message: types.Message, state: FSMContext):
 
 @client_router.message(AddTenders.Dispatch_time, F.text)
 async def dispatch_time(message: types.Message, state: FSMContext):
-    # async with state.proxy() as data:
-    # Removing all characters except digits.
+    """Removing all characters except digits."""
     cleaned_time = re.sub(r'\D', '', message.text)
-    # Adding a colon ':' after the first two digits.
+    """Adding a colon ':' after the first two digits."""
     formatted_time = cleaned_time[:2] + ":" + cleaned_time[2:]
-    await state.update_data(Region=formatted_time)
+    await state.update_data(Dispatch_time=formatted_time)
     await message.answer('Введіть адрес електронної пошти')
     await state.set_state(AddTenders.Email)
 
@@ -165,5 +165,10 @@ async def dispatch_time(message: types.Message, state: FSMContext):
 async def email(message: types.Message, state: FSMContext):
     await state.update_data(Email=message.text.lower())
     data = await state.get_data()
-    await message.answer(str(data))
+    success = await sql_add_data(data)
+    if success:
+        await message.answer('Новий запит успішно додано', reply_markup=action_menu_markup)
+    else:
+        await message.answer('Виникла внутрішня помилка, будь ласка спробуйте пізніше',
+                             reply_markup=action_menu_markup)
     await state.clear()
