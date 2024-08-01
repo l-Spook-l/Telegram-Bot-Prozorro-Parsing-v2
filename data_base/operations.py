@@ -3,7 +3,7 @@ from .models import UserSettings
 from .config_db import async_session
 
 
-async def sql_add_data(data):
+async def orm_add_data(data):
     try:
         async with async_session() as session:
             stat = insert(UserSettings).values(**data)
@@ -15,7 +15,7 @@ async def sql_add_data(data):
         return False
 
 
-async def sql_read(message):
+async def orm_read(message):
     try:
         async with async_session() as session:
             query = select(UserSettings).filter_by(user=message.from_user.id)
