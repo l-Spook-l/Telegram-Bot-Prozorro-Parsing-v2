@@ -17,3 +17,15 @@ action_menu_markup = ReplyKeyboardMarkup(
     resize_keyboard=True,
 )
 
+skip_cancel_markup = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton(text='Пропустити'),
+        ],
+        [
+            KeyboardButton(text='Відміна'),
+            KeyboardButton(text='Назад'),
+        ],
+    ],
+    resize_keyboard=True,
+)
