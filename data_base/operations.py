@@ -25,3 +25,13 @@ async def orm_read(message):
         print(f"Error occurred while reading data: {error}")
         return False
 
+
+async def orm_read_time(time_now):
+    try:
+        async with async_session() as session:
+            query = select(UserSettings).filter_by(Dispatch_time=time_now)
+            res = await session.execute(query)
+            result = res.all()
+        return result
+    except Exception as error:
+        print(f"Error occurred while check time: {error}")
