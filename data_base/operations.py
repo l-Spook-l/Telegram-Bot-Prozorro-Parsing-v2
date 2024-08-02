@@ -15,7 +15,7 @@ async def orm_add_data(data) -> bool:
         return False
 
 
-async def orm_read(message):
+async def orm_get_data(message):
     try:
         async with async_session() as session:
             query = select(UserSettings).filter_by(user=message.from_user.id)
