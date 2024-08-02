@@ -3,7 +3,7 @@ from .models import UserSettings
 from .config_db import async_session
 
 
-async def orm_add_data(data):
+async def orm_add_data(data) -> bool:
     try:
         async with async_session() as session:
             stat = insert(UserSettings).values(**data)
@@ -35,3 +35,15 @@ async def orm_read_time(time_now):
         return result
     except Exception as error:
         print(f"Error occurred while check time: {error}")
+
+
+async def orm_delete_data(id):
+    try:
+        async with async_session() as session:
+            query = delete(UserSettings).filter_by(id=id)
+            await session.execute(query)
+            await session.commit()
+        return True
+    except Exception as error:
+        print(f"Error occurred while remove data: {error}")
+        return False
