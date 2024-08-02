@@ -1,12 +1,12 @@
 from sqlalchemy import insert, select, delete, update
-from .models import UserSettings
+from .models import UserFilterTenders
 from .config_db import async_session
 
 
 async def orm_add_data(data) -> bool:
     try:
         async with async_session() as session:
-            stat = insert(UserSettings).values(**data)
+            stat = insert(UserFilterTenders).values(**data)
             await session.execute(stat)
             await session.commit()
             return True
@@ -18,7 +18,7 @@ async def orm_add_data(data) -> bool:
 async def orm_get_data(message):
     try:
         async with async_session() as session:
-            query = select(UserSettings).filter_by(user=message.from_user.id)
+            query = select(UserFilterTenders).filter_by(user=message.from_user.id)
             result = await session.execute(query)
         return result.scalars().all()
     except Exception as error:
@@ -29,7 +29,7 @@ async def orm_get_data(message):
 async def orm_get_one_data(id):
     try:
         async with async_session() as session:
-            query = select(UserSettings).filter_by(id=id)
+            query = select(UserFilterTenders).filter_by(id=id)
             result = await session.execute(query)
         return result.scalar()
     except Exception as error:
@@ -40,7 +40,7 @@ async def orm_get_one_data(id):
 async def orm_read_time(time_now):
     try:
         async with async_session() as session:
-            query = select(UserSettings).filter_by(Dispatch_time=time_now)
+            query = select(UserFilterTenders).filter_by(Dispatch_time=time_now)
             res = await session.execute(query)
             result = res.all()
         return result
@@ -51,7 +51,7 @@ async def orm_read_time(time_now):
 async def orm_update_one_data(id, data):
     try:
         async with async_session() as session:
-            query = update(UserSettings).filter_by(id=id).values(**data)
+            query = update(UserFilterTenders).filter_by(id=id).values(**data)
             await session.execute(query)
             await session.commit()
         return True
@@ -63,7 +63,7 @@ async def orm_update_one_data(id, data):
 async def orm_delete_data(id):
     try:
         async with async_session() as session:
-            query = delete(UserSettings).filter_by(id=id)
+            query = delete(UserFilterTenders).filter_by(id=id)
             await session.execute(query)
             await session.commit()
         return True

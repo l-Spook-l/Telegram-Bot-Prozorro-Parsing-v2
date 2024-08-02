@@ -3,8 +3,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from .config_db import Base
 
 
-class UserSettings(Base):
-    __tablename__ = 'user_settings_table'
+class UserFilterTenders(Base):
+    __tablename__ = 'user_filter_tenders_table'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user: Mapped[int]
