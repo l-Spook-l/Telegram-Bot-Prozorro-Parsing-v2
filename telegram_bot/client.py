@@ -23,11 +23,11 @@ class TenderFilterSetup(StatesGroup):
     update_tender_filter = None
 
     texts = {
-        "AddTenders:DK021_2015": "Введіть код ДК021:2015 знову",
-        "AddTenders:Status": "Введіть статус знову",
-        "AddTenders:Procurement_type": "Введіть  вид закупівлі знову",
-        "AddTenders:Region": "Введіть регіон знову",
-        "AddTenders:Dispatch_time": "Введіть час відправлення знову",
+        "TenderFilterSetup:DK021_2015": "Введіть код ДК021:2015 знову",
+        "TenderFilterSetup:Status": "Введіть статус знову",
+        "TenderFilterSetup:Procurement_type": "Введіть вид закупівлі знову",
+        "TenderFilterSetup:Region": "Введіть регіон знову",
+        "TenderFilterSetup:Dispatch_time": "Введіть час відправлення знову",
     }
 
 
@@ -46,7 +46,7 @@ async def help_user(message: types.Message):
         "\nДля параметру Регіон можна вказати лише одне значення у одному запиті (це обмеження Prozorro), "
         "а для решти параметрів можна вказувати кілька значень, розділивши їх комами."
         "\n"
-        "\n     <b><u>Приклад фільтру для тендерів</u></b>"
+        "\n       <b><u>Приклад фільтру для тендерів</u></b>"
         "\nДК021:2015: 09300000-2"
         "\nСтатус: період уточнень, прекваліфікація"
         "\nВид закупівлі: спрощена закупівля"
@@ -58,7 +58,7 @@ async def help_user(message: types.Message):
         parse_mode="HTML")
 
 
-@client_router.message(StateFilter(None), F.text == "Додати запит")
+@client_router.message(StateFilter(None), F.text == "Додати новий фільтр")
 async def create_new_request(message: types.Message, state: FSMContext):
     await message.answer('Введіть код ДК021:2015', reply_markup=skip_cancel_markup)
     await state.set_state(TenderFilterSetup.DK021_2015)
@@ -81,11 +81,11 @@ async def del_callback_run(callback_query: types.CallbackQuery, state: FSMContex
 async def cancel_handler(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
-        await message.reply('Додавання нового запиту скасовано', reply_markup=action_menu_markup)
+        await message.reply('Додавання нового фільтру скасовано', reply_markup=action_menu_markup)
         return
     if TenderFilterSetup.update_tender_filter:
         TenderFilterSetup.update_tender_filter = None
-        await message.reply('Змінення запиту скасовано', reply_markup=action_menu_markup)
+        await message.reply('Змінення фільтру скасовано', reply_markup=action_menu_markup)
     await state.clear()
 
 
@@ -210,18 +210,18 @@ async def email(message: types.Message, state: FSMContext):
 
     if success:
         if TenderFilterSetup.update_tender_filter:
-            await message.answer('Запит успішно змінено', reply_markup=action_menu_markup)
+            await message.answer('фільтр успішно змінено', reply_markup=action_menu_markup)
         else:
-            await message.answer('Новий запит успішно додано', reply_markup=action_menu_markup)
+            await message.answer('Новий фільтру успішно додано', reply_markup=action_menu_markup)
     else:
         await message.answer('Виникла внутрішня помилка, будь ласка спробуйте пізніше',
                              reply_markup=action_menu_markup)
     await state.clear()
 
 
-@client_router.message(F.text.casefold() == "ваші запити")
+@client_router.message(F.text.casefold() == "ваші фільтри")
 async def list_requests(message: types.Message):
-    await message.reply('Список ваших запитів')
+    await message.reply('Список ваших фільтри')
     get_data = await orm_get_data(message)
     if get_data:
         for user_settings in get_data:
@@ -235,7 +235,7 @@ async def list_requests(message: types.Message):
                 })
             )
     elif len(get_data) == 0:
-        await message.answer('У вас нема створених запитів.',
+        await message.answer('У вас нема створених фільтрів.',
                              reply_markup=action_menu_markup)
     else:
         await message.answer('Виникла внутрішня помилка, будь ласка спробуйте пізніше',
@@ -247,8 +247,8 @@ async def del_callback_run(callback_query: types.CallbackQuery):
     tender_filter_id = int(callback_query.data.split("_")[-1])
     success = await orm_delete_data(tender_filter_id)
     if success:
-        await callback_query.answer(text='Запит успішно видалено', show_alert=True)
-        await callback_query.message.answer("Запит видалено")
+        await callback_query.answer(text='Фільтр успішно видалено', show_alert=True)
+        await callback_query.message.answer("Фільтр видалено")
     else:
         await callback_query.answer(text='Виникла внутрішня помилка, будь ласка спробуйте пізніше', show_alert=True)
 
