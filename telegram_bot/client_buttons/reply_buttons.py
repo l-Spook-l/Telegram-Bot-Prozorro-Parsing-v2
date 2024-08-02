@@ -5,16 +5,13 @@ action_menu_markup = ReplyKeyboardMarkup(
     keyboard=[
         [
             KeyboardButton(text='Ваші запити'),
-        ],
-        [
             KeyboardButton(text='Додати запит'),
-            KeyboardButton(text='Видалити запит'),
         ],
         [
             KeyboardButton(text='Довідка'),
         ]
     ],
-    resize_keyboard=True,
+    resize_keyboard=True
 )
 
 skip_cancel_markup = ReplyKeyboardMarkup(
@@ -27,5 +24,5 @@ skip_cancel_markup = ReplyKeyboardMarkup(
             KeyboardButton(text='Назад'),
         ],
     ],
-    resize_keyboard=True,
+    resize_keyboard=True
 )
