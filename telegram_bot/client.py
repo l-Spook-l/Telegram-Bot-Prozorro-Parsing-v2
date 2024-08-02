@@ -3,8 +3,8 @@ from aiogram import types, Router, F
 from aiogram.filters import CommandStart, Command, StateFilter
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
-from client_buttons.reply_buttons import action_menu_markup, skip_cancel_markup
-from client_buttons.inline_buttons import get_callback_btns
+from .client_buttons.reply_buttons import action_menu_markup, skip_cancel_markup
+from .client_buttons.inline_buttons import get_callback_btns
 from common.options import status_data, procurement_type_data, regions_data
 
 # from data_base.operations import sql_add_data, sql_read, sql_delete_data, sql_read_for_del
@@ -36,6 +36,7 @@ async def start_bot(message: types.Message):
 
 
 @client_router.message(Command("help"))
+@client_router.message(F.text.casefold() == "довідка")
 async def help_user(message: types.Message):
     await message.answer(
         "Інструкція використання бота."
