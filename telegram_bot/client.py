@@ -20,7 +20,7 @@ class TenderFilterSetup(StatesGroup):
     Dispatch_time = State()
     Email = State()
 
-    product_for_change = None
+    update_tender_filter = None
 
     texts = {
         "AddTenders:DK021_2015": "Введіть код ДК021:2015 знову",
@@ -45,7 +45,8 @@ async def help_user(message: types.Message):
         "\nНаразі реалізований пошук тендерів за чотирма параметрами: Статус, Вид закупівлі, ДК021:2015 та Регіон. "
         "\nДля параметру Регіон можна вказати лише одне значення у одному запиті (це обмеження Prozorro), "
         "а для решти параметрів можна вказувати кілька значень, розділивши їх комами."
-        "\n                   Приклад запиту:"
+        "\n"
+        "\n     <b><u>Приклад фільтру для тендерів</u></b>"
         "\nДК021:2015: 09300000-2"
         "\nСтатус: період уточнень, прекваліфікація"
         "\nВид закупівлі: спрощена закупівля"
@@ -53,7 +54,8 @@ async def help_user(message: types.Message):
         "\nЧас відправлення: 18:08"
         "\nПошта: ваша пошта"
         "\nТакож, якщо вам щось не потрібно, ви можете натиснути кнопку - пропустити."
-        "\nКонтакти: uaspookua@gmail.com", )
+        "\nКонтакти: uaspookua@gmail.com",
+        parse_mode="HTML")
 
 
 @client_router.message(StateFilter(None), F.text == "Додати запит")
@@ -62,14 +64,29 @@ async def create_new_request(message: types.Message, state: FSMContext):
     await state.set_state(TenderFilterSetup.DK021_2015)
 
 
+@client_router.callback_query(StateFilter(None), F.data.startswith("change_"))
+async def del_callback_run(callback_query: types.CallbackQuery, state: FSMContext):
+    tender_filter_id = int(callback_query.data.split("_")[-1])
+    get_data = await orm_get_one_data(tender_filter_id)
+    TenderFilterSetup.update_tender_filter = get_data
+    await callback_query.answer()
+    await callback_query.message.answer(
+        'Введіть код ДК021:2015', reply_markup=skip_cancel_markup
+    )
+    await state.set_state(TenderFilterSetup.DK021_2015)
+
+
 @client_router.message(StateFilter("*"), Command("Відміна"))
 @client_router.message(StateFilter("*"), F.text.casefold() == "відміна")
 async def cancel_handler(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
+        await message.reply('Додавання нового запиту скасовано', reply_markup=action_menu_markup)
         return
+    if TenderFilterSetup.update_tender_filter:
+        TenderFilterSetup.update_tender_filter = None
+        await message.reply('Змінення запиту скасовано', reply_markup=action_menu_markup)
     await state.clear()
-    await message.reply('Додавання нового запиту скасовано', reply_markup=action_menu_markup)
 
 
 @client_router.message(StateFilter("*"), Command("назад"))
@@ -90,7 +107,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 @client_router.message(TenderFilterSetup.DK021_2015, or_f(F.text, F.text == "."))
 async def DK021_2015(message: types.Message, state: FSMContext):
     if message.text == ".":
-        await state.update_data(DK021_2015=TenderFilterSetup.product_for_change.DK021_2015)
+        await state.update_data(DK021_2015=TenderFilterSetup.update_tender_filter.DK021_2015)
         await message.answer('Введіть статус')
         await state.set_state(TenderFilterSetup.Status)
     else:
@@ -108,65 +125,94 @@ async def DK021_2015(message: types.Message, state: FSMContext):
             await message.answer('Введіть код ДК021:2015')
 
 
-@client_router.message(TenderFilterSetup.Status, F.text)
+@client_router.message(TenderFilterSetup.Status, or_f(F.text, F.text == "."))
 async def status(message: types.Message, state: FSMContext):
-    status_input = message.text.lower().split(', ')
-    valid_statuses = [status for status in status_input if status in status_data or status == 'пропустити']
-    if valid_statuses:
-        await state.update_data(Status=', '.join(valid_statuses))
+    if message.text == ".":
+        await state.update_data(Status=TenderFilterSetup.update_tender_filter.Status)
         await message.answer('Введіть вид закупівлі')
         await state.set_state(TenderFilterSetup.Procurement_type)
     else:
-        await message.answer('Такого статусу немає, введіть ще раз')
-        await message.answer('Введіть статус')
+        status_input = message.text.lower().split(', ')
+        valid_statuses = [status for status in status_input if status in status_data or status == 'пропустити']
+        if valid_statuses:
+            await state.update_data(Status=', '.join(valid_statuses))
+            await message.answer('Введіть вид закупівлі')
+            await state.set_state(TenderFilterSetup.Procurement_type)
+        else:
+            await message.answer('Такого статусу немає, введіть ще раз')
+            await message.answer('Введіть статус')
 
 
-@client_router.message(TenderFilterSetup.Procurement_type, F.text)
+@client_router.message(TenderFilterSetup.Procurement_type, or_f(F.text, F.text == "."))
 async def procurement_type(message: types.Message, state: FSMContext):
-    procurement_type_input = message.text.lower().split(', ')
-
-    valid_procurement_types = [procurement_type for procurement_type in procurement_type_input if
-                               procurement_type in procurement_type_data or procurement_type == 'пропустити']
-    if valid_procurement_types:
-        await state.update_data(Procurement_type=', '.join(valid_procurement_types))
+    if message.text == ".":
+        await state.update_data(Status=TenderFilterSetup.update_tender_filter.Procurement_type)
         await message.answer('Оберіть потрібний регіон')
         await state.set_state(TenderFilterSetup.Region)
     else:
-        await message.answer('Такого виду закупівлі немає, введіть ще раз')
-        await message.answer('Введіть вид закупівлі')
+        procurement_type_input = message.text.lower().split(', ')
+        valid_procurement_types = [procurement_type for procurement_type in procurement_type_input if
+                                   procurement_type in procurement_type_data or procurement_type == 'пропустити']
+        if valid_procurement_types:
+            await state.update_data(Procurement_type=', '.join(valid_procurement_types))
+            await message.answer('Оберіть потрібний регіон')
+            await state.set_state(TenderFilterSetup.Region)
+        else:
+            await message.answer('Такого виду закупівлі немає, введіть ще раз')
+            await message.answer('Введіть вид закупівлі')
 
 
-@client_router.message(TenderFilterSetup.Region, F.text)
+@client_router.message(TenderFilterSetup.Region, or_f(F.text, F.text == "."))
 async def region(message: types.Message, state: FSMContext):
-    region_input = message.text.lower().split(', ')
-    valid_region = [region for region in region_input if region in regions_data or region == 'пропустити']
-    if valid_region:
-        await state.update_data(Region=', '.join(valid_region))
+    if message.text == ".":
+        await state.update_data(Status=TenderFilterSetup.update_tender_filter.Region)
         await message.answer('Введіть час відправлення повідомлення на електронну пошту')
         await state.set_state(TenderFilterSetup.Dispatch_time)
     else:
-        await message.answer('Такого регіону немає, введіть ще раз')
-        await message.answer('Оберіть потрібний регіон')
+        region_input = message.text.lower().split(', ')
+        valid_region = [region for region in region_input if region in regions_data or region == 'пропустити']
+        if valid_region:
+            await state.update_data(Region=', '.join(valid_region))
+            await message.answer('Введіть час відправлення повідомлення на електронну пошту')
+            await state.set_state(TenderFilterSetup.Dispatch_time)
+        else:
+            await message.answer('Такого регіону немає, введіть ще раз')
+            await message.answer('Оберіть потрібний регіон')
 
 
-@client_router.message(TenderFilterSetup.Dispatch_time, F.text)
+@client_router.message(TenderFilterSetup.Dispatch_time, or_f(F.text, F.text == "."))
 async def dispatch_time(message: types.Message, state: FSMContext):
-    """Removing all characters except digits."""
-    cleaned_time = re.sub(r'\D', '', message.text)
-    """Adding a colon ':' after the first two digits."""
-    formatted_time = cleaned_time[:2] + ":" + cleaned_time[2:]
-    await state.update_data(Dispatch_time=formatted_time)
+    if message.text == ".":
+        await state.update_data(Status=TenderFilterSetup.update_tender_filter.Dispatch_time)
+    else:
+        """Removing all characters except digits."""
+        cleaned_time = re.sub(r'\D', '', message.text)
+        """Adding a colon ':' after the first two digits."""
+        formatted_time = cleaned_time[:2] + ":" + cleaned_time[2:]
+        await state.update_data(Dispatch_time=formatted_time)
     await message.answer('Введіть адрес електронної пошти')
     await state.set_state(TenderFilterSetup.Email)
 
 
-@client_router.message(TenderFilterSetup.Email, F.text)
+@client_router.message(TenderFilterSetup.Email, or_f(F.text, F.text == "."))
 async def email(message: types.Message, state: FSMContext):
-    await state.update_data(Email=message.text.lower())
+    if message.text == ".":
+        await state.update_data(Status=TenderFilterSetup.update_tender_filter.Email)
+    else:
+        await state.update_data(Email=message.text.lower())
+
     data = await state.get_data()
-    success = await orm_add_data(data)
+
+    if TenderFilterSetup.update_tender_filter:
+        success = await orm_update_one_data(TenderFilterSetup.update_tender_filter.id, data)
+    else:
+        success = await orm_add_data(data)
+
     if success:
-        await message.answer('Новий запит успішно додано', reply_markup=action_menu_markup)
+        if TenderFilterSetup.update_tender_filter:
+            await message.answer('Запит успішно змінено', reply_markup=action_menu_markup)
+        else:
+            await message.answer('Новий запит успішно додано', reply_markup=action_menu_markup)
     else:
         await message.answer('Виникла внутрішня помилка, будь ласка спробуйте пізніше',
                              reply_markup=action_menu_markup)
@@ -198,7 +244,8 @@ async def list_requests(message: types.Message):
 
 @client_router.callback_query(F.data.startswith("delete_"))
 async def del_callback_run(callback_query: types.CallbackQuery):
-    success = await orm_delete_data(int(callback_query.data.split("_")[-1]))
+    tender_filter_id = int(callback_query.data.split("_")[-1])
+    success = await orm_delete_data(tender_filter_id)
     if success:
         await callback_query.answer(text='Запит успішно видалено', show_alert=True)
         await callback_query.message.answer("Запит видалено")
