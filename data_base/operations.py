@@ -22,7 +22,7 @@ async def orm_get_data(message):
             result = await session.execute(query)
         return result.scalars().all()
     except Exception as error:
-        print(f"Error occurred while reading data: {error}")
+        print(f"Error occurred while getting data: {error}")
         return False
 
 
@@ -33,7 +33,7 @@ async def orm_get_one_data(id):
             result = await session.execute(query)
         return result.scalar()
     except Exception as error:
-        print(f"Error occurred while reading data: {error}")
+        print(f"Error occurred while getting one data: {error}")
         return False
 
 
@@ -56,7 +56,7 @@ async def orm_update_one_data(id, data):
             await session.commit()
         return True
     except Exception as error:
-        print(f"Error occurred while remove data: {error}")
+        print(f"Error occurred while updating data: {error}")
         return False
 
 
