@@ -8,7 +8,7 @@ from .client_buttons.inline_buttons import get_callback_btns
 from common.options import status_data, procurement_type_data, regions_data
 
 # from data_base.operations import sql_add_data, sql_read, sql_delete_data, sql_read_for_del
-from data_base.operations import orm_add_data, orm_read
+from data_base.operations import orm_add_data, orm_read, orm_delete_data
 
 client_router = Router()
 
@@ -188,3 +188,12 @@ async def list_requests(message: types.Message):
     else:
         await message.answer('Виникла внутрішня помилка, будь ласка спробуйте пізніше',
                              reply_markup=action_menu_markup)
+
+
+@client_router.callback_query(F.data.startswith("delete_"))
+async def del_callback_run(callback_query: types.CallbackQuery):
+    success = await orm_delete_data(int(callback_query.data.split("_")[-1]))
+    if success:
+        await callback_query.answer(text='Запит успішно видалено', show_alert=True)
+    else:
+        await callback_query.answer(text='Виникла внутрішня помилка, будь ласка спробуйте пізніше', show_alert=True)
