@@ -3,7 +3,7 @@ from aiogram import types, Router, F
 from aiogram.filters import CommandStart, Command, StateFilter, or_f
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
-from .client_buttons.reply_buttons import action_menu_markup, skip_cancel_markup
+from .client_buttons.reply_buttons import action_menu_markup, skip_cancel_markup, skip_cancel_markup_update
 from .client_buttons.inline_buttons import get_callback_btns
 from common.validations_options import status_data, procurement_type_data, regions_data
 from data_base.operations import orm_add_data, orm_get_data, orm_delete_data, orm_get_one_data, orm_update_one_data
@@ -32,7 +32,8 @@ class TenderFilterSetup(StatesGroup):
 
 @client_router.message(CommandStart())
 async def start_bot(message: types.Message):
-    await message.answer("Вітаю, оберіть, що потрібно зробити", reply_markup=action_menu_markup)
+    await message.answer("Вітаю, оберіть, що потрібно зробити",
+                         reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
 
 
 @client_router.message(Command("help"))
@@ -59,7 +60,7 @@ async def help_user(message: types.Message):
 
 @client_router.message(StateFilter(None), F.text == "Додати новий фільтр")
 async def create_new_filter(message: types.Message, state: FSMContext):
-    await message.answer('Введіть код ДК021:2015', reply_markup=skip_cancel_markup)
+    await message.answer('Введіть код ДК021:2015', reply_markup=skip_cancel_markup.as_markup(resize_keyboard=True))
     await state.set_state(TenderFilterSetup.DK021_2015)
 
 
@@ -70,9 +71,9 @@ async def update_filter(callback_query: types.CallbackQuery, state: FSMContext):
     TenderFilterSetup.update_tender_filter = get_data
     await callback_query.answer()
     await callback_query.message.answer(
-        "Якщо вам не потрібно змінювати пункт, натисніть кнопку 'не змінювати пункт' - .")
+        "Якщо вам не потрібно змінювати пункт, натисніть кнопку 'не змінювати пункт'")
     await callback_query.message.answer(
-        'Введіть код ДК021:2015', reply_markup=skip_cancel_markup
+        'Введіть код ДК021:2015', reply_markup=skip_cancel_markup_update.as_markup(resize_keyboard=True)
     )
     await state.set_state(TenderFilterSetup.DK021_2015)
 
@@ -85,9 +86,11 @@ async def cancel_handler(message: types.Message, state: FSMContext):
         return
     elif TenderFilterSetup.update_tender_filter:
         TenderFilterSetup.update_tender_filter = None
-        await message.reply('Змінення фільтру скасовано', reply_markup=action_menu_markup)
+        await message.reply('Змінення фільтру скасовано',
+                            reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
     else:
-        await message.reply('Додавання нового запиту скасовано', reply_markup=action_menu_markup)
+        await message.reply('Додавання нового запиту скасовано',
+                            reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
     await state.clear()
 
 
@@ -212,12 +215,14 @@ async def email(message: types.Message, state: FSMContext):
 
     if success:
         if TenderFilterSetup.update_tender_filter:
-            await message.answer('Фільтр успішно змінено', reply_markup=action_menu_markup)
+            await message.answer('Фільтр успішно змінено',
+                                 reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
         else:
-            await message.answer('Новий фільтру успішно додано', reply_markup=action_menu_markup)
+            await message.answer('Новий фільтру успішно додано',
+                                 reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
     else:
         await message.answer('Виникла внутрішня помилка, будь ласка спробуйте пізніше',
-                             reply_markup=action_menu_markup)
+                             reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
     await state.clear()
 
 
@@ -238,10 +243,10 @@ async def list_filters(message: types.Message):
             )
     elif len(get_data) == 0:
         await message.answer('У вас нема створених фільтрів.',
-                             reply_markup=action_menu_markup)
+                             reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
     else:
         await message.answer('Виникла внутрішня помилка, будь ласка спробуйте пізніше',
-                             reply_markup=action_menu_markup)
+                             reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
 
 
 @client_router.callback_query(F.data.startswith("delete_"))
