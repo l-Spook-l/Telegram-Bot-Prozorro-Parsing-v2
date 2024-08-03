@@ -15,3 +15,4 @@ class UserFilterTenders(Base):
     Dispatch_time: Mapped[str]
     Email: Mapped[str]
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow())
+    update_at: Mapped[datetime] = mapped_column(default=datetime.utcnow(), onupdate=datetime.utcnow())
