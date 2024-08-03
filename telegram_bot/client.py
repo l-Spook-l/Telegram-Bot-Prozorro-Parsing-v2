@@ -81,11 +81,12 @@ async def update_filter(callback_query: types.CallbackQuery, state: FSMContext):
 async def cancel_handler(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
-        await message.answer('Додавання нового фільтру скасовано', reply_markup=action_menu_markup)
         return
-    if TenderFilterSetup.update_tender_filter:
+    elif TenderFilterSetup.update_tender_filter:
         TenderFilterSetup.update_tender_filter = None
-        await message.answer('Змінення фільтру скасовано', reply_markup=action_menu_markup)
+        await message.reply('Змінення фільтру скасовано', reply_markup=action_menu_markup)
+    else:
+        await message.reply('Додавання нового запиту скасовано', reply_markup=action_menu_markup)
     await state.clear()
 
 
