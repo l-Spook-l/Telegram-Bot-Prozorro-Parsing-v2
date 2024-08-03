@@ -106,9 +106,9 @@ async def back_handler(message: types.Message, state: FSMContext):
         previous = step
 
 
-@client_router.message(TenderFilterSetup.DK021_2015, or_f(F.text, F.text == "не змінювати пункт"))
+@client_router.message(TenderFilterSetup.DK021_2015, or_f(F.text, F.text.casefold() == "не змінювати пункт"))
 async def DK021_2015(message: types.Message, state: FSMContext):
-    if message.text == "не змінювати пункт":
+    if message.text.casefold() == "не змінювати пункт":
         await state.update_data(DK021_2015=TenderFilterSetup.update_tender_filter.DK021_2015)
         await message.answer('Введіть статус')
         await state.set_state(TenderFilterSetup.Status)
@@ -127,9 +127,9 @@ async def DK021_2015(message: types.Message, state: FSMContext):
             await message.answer('Введіть код ДК021:2015')
 
 
-@client_router.message(TenderFilterSetup.Status, or_f(F.text, F.text == "не змінювати пункт"))
+@client_router.message(TenderFilterSetup.Status, or_f(F.text, F.text.casefold() == "не змінювати пункт"))
 async def status(message: types.Message, state: FSMContext):
-    if message.text == "не змінювати пункт":
+    if message.text.casefold() == "не змінювати пункт":
         await state.update_data(Status=TenderFilterSetup.update_tender_filter.Status)
         await message.answer('Введіть вид закупівлі')
         await state.set_state(TenderFilterSetup.Procurement_type)
@@ -145,9 +145,9 @@ async def status(message: types.Message, state: FSMContext):
             await message.answer('Введіть статус')
 
 
-@client_router.message(TenderFilterSetup.Procurement_type, or_f(F.text, F.text == "не змінювати пункт"))
+@client_router.message(TenderFilterSetup.Procurement_type, or_f(F.text, F.text.casefold() == "не змінювати пункт"))
 async def procurement_type(message: types.Message, state: FSMContext):
-    if message.text == "не змінювати пункт":
+    if message.text.casefold() == "не змінювати пункт":
         await state.update_data(Procurement_type=TenderFilterSetup.update_tender_filter.Procurement_type)
         await message.answer('Оберіть потрібний регіон')
         await state.set_state(TenderFilterSetup.Region)
@@ -164,9 +164,9 @@ async def procurement_type(message: types.Message, state: FSMContext):
             await message.answer('Введіть вид закупівлі')
 
 
-@client_router.message(TenderFilterSetup.Region, or_f(F.text, F.text == "не змінювати пункт"))
+@client_router.message(TenderFilterSetup.Region, or_f(F.text, F.text.casefold() == "не змінювати пункт"))
 async def region(message: types.Message, state: FSMContext):
-    if message.text == "не змінювати пункт":
+    if message.text.casefold() == "не змінювати пункт":
         await state.update_data(Region=TenderFilterSetup.update_tender_filter.Region)
         await message.answer('Введіть час відправлення повідомлення на електронну пошту')
         await state.set_state(TenderFilterSetup.Dispatch_time)
@@ -182,9 +182,9 @@ async def region(message: types.Message, state: FSMContext):
             await message.answer('Оберіть потрібний регіон')
 
 
-@client_router.message(TenderFilterSetup.Dispatch_time, or_f(F.text, F.text == "не змінювати пункт"))
+@client_router.message(TenderFilterSetup.Dispatch_time, or_f(F.text, F.text.casefold() == "не змінювати пункт"))
 async def dispatch_time(message: types.Message, state: FSMContext):
-    if message.text == "не змінювати пункт":
+    if message.text.casefold() == "не змінювати пункт":
         await state.update_data(Dispatch_time=TenderFilterSetup.update_tender_filter.Dispatch_time)
     else:
         """Removing all characters except digits."""
@@ -196,9 +196,9 @@ async def dispatch_time(message: types.Message, state: FSMContext):
     await state.set_state(TenderFilterSetup.Email)
 
 
-@client_router.message(TenderFilterSetup.Email, or_f(F.text, F.text == "не змінювати пункт"))
+@client_router.message(TenderFilterSetup.Email, or_f(F.text, F.text.casefold() == "не змінювати пункт"))
 async def email(message: types.Message, state: FSMContext):
-    if message.text == "не змінювати пункт":
+    if message.text.casefold() == "не змінювати пункт":
         await state.update_data(Email=TenderFilterSetup.update_tender_filter.Email)
     else:
         await state.update_data(Email=message.text.lower())
