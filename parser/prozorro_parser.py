@@ -45,7 +45,7 @@ async def get_json(data_for_parser):
                                            'Регіон не вказано або вказано не вірно'
 
                             name_company = data_page["data"][tender]["procuringEntity"]["identifier"].get(
-                                "legalName") or data_page["data"][tender]["procuringEntity"]["name"] or \
+                                "legalName") or data_page["data"][tender]["procuringEntity"].get("name") or \
                                            'Назву не вказано або вказано не вірно'
 
                             ID_tender = data_page["data"][tender]["tenderID"]
