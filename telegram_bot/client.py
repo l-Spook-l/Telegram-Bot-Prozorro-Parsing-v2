@@ -5,8 +5,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
 from .client_buttons.reply_buttons import action_menu_markup, skip_cancel_markup
 from .client_buttons.inline_buttons import get_callback_btns
-from common.options import status_data, procurement_type_data, regions_data
-
+from common.validations_options import status_data, procurement_type_data, regions_data
 from data_base.operations import orm_add_data, orm_get_data, orm_delete_data, orm_get_one_data, orm_update_one_data
 
 client_router = Router()
@@ -59,17 +58,18 @@ async def help_user(message: types.Message):
 
 
 @client_router.message(StateFilter(None), F.text == "Додати новий фільтр")
-async def create_new_request(message: types.Message, state: FSMContext):
+async def create_new_filter(message: types.Message, state: FSMContext):
     await message.answer('Введіть код ДК021:2015', reply_markup=skip_cancel_markup)
     await state.set_state(TenderFilterSetup.DK021_2015)
 
 
 @client_router.callback_query(StateFilter(None), F.data.startswith("change_"))
-async def del_callback_run(callback_query: types.CallbackQuery, state: FSMContext):
+async def update_filter(callback_query: types.CallbackQuery, state: FSMContext):
     tender_filter_id = int(callback_query.data.split("_")[-1])
     get_data = await orm_get_one_data(tender_filter_id)
     TenderFilterSetup.update_tender_filter = get_data
     await callback_query.answer()
+    await callback_query.message.answer("Якщо вам не потрібно змінити пункт то введіть крапку - .")
     await callback_query.message.answer(
         'Введіть код ДК021:2015', reply_markup=skip_cancel_markup
     )
@@ -81,21 +81,21 @@ async def del_callback_run(callback_query: types.CallbackQuery, state: FSMContex
 async def cancel_handler(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
-        await message.reply('Додавання нового фільтру скасовано', reply_markup=action_menu_markup)
+        await message.answer('Додавання нового фільтру скасовано', reply_markup=action_menu_markup)
         return
     if TenderFilterSetup.update_tender_filter:
         TenderFilterSetup.update_tender_filter = None
-        await message.reply('Змінення фільтру скасовано', reply_markup=action_menu_markup)
+        await message.answer('Змінення фільтру скасовано', reply_markup=action_menu_markup)
     await state.clear()
 
 
 @client_router.message(StateFilter("*"), Command("назад"))
 @client_router.message(StateFilter("*"), F.text.casefold() == "назад")
-async def cancel_handler(message: types.Message, state: FSMContext):
+async def back_handler(message: types.Message, state: FSMContext):
     current_state = await state.get_state()
     if current_state == TenderFilterSetup.DK021_2015:
         await message.answer("Це перший пункт, що потрібно заповнити, введіть код або натисніть кнопку відміна")
-
+        return
     previous = None
     for step in TenderFilterSetup.__all_states__:
         if step.state == current_state:
@@ -210,7 +210,7 @@ async def email(message: types.Message, state: FSMContext):
 
     if success:
         if TenderFilterSetup.update_tender_filter:
-            await message.answer('фільтр успішно змінено', reply_markup=action_menu_markup)
+            await message.answer('Фільтр успішно змінено', reply_markup=action_menu_markup)
         else:
             await message.answer('Новий фільтру успішно додано', reply_markup=action_menu_markup)
     else:
@@ -220,7 +220,7 @@ async def email(message: types.Message, state: FSMContext):
 
 
 @client_router.message(F.text.casefold() == "ваші фільтри")
-async def list_requests(message: types.Message):
+async def list_filters(message: types.Message):
     await message.reply('Список ваших фільтри')
     get_data = await orm_get_data(message)
     if get_data:
@@ -243,7 +243,7 @@ async def list_requests(message: types.Message):
 
 
 @client_router.callback_query(F.data.startswith("delete_"))
-async def del_callback_run(callback_query: types.CallbackQuery):
+async def delete_filter(callback_query: types.CallbackQuery):
     tender_filter_id = int(callback_query.data.split("_")[-1])
     success = await orm_delete_data(tender_filter_id)
     if success:
@@ -251,6 +251,4 @@ async def del_callback_run(callback_query: types.CallbackQuery):
         await callback_query.message.answer("Фільтр видалено")
     else:
         await callback_query.answer(text='Виникла внутрішня помилка, будь ласка спробуйте пізніше', show_alert=True)
-
-
 
