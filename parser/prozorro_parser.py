@@ -2,6 +2,9 @@ import aiohttp
 from fake_useragent import UserAgent
 from .url_generator import get_url
 
+# urls = ["https://prozorro.gov.ua/api/search/tenders?filterType=tenders?region=7-9&status%5B0%5D=active.enquiries",]
+# urls = ["https://prozorro.gov.ua/api/search/tenders?region=7-9&status%5B0%5D=active.enquiries",]
+
 
 async def get_json(data_for_parser):
     user_agent = UserAgent()
@@ -41,7 +44,10 @@ async def get_json(data_for_parser):
                                            data_page["data"][tender]["procuringEntity"]["address"].get("region") or \
                                            'Регіон не вказано або вказано не вірно'
 
-                            name_company = data_page["data"][tender]["procuringEntity"]["identifier"]["legalName"]
+                            name_company = data_page["data"][tender]["procuringEntity"]["identifier"].get(
+                                "legalName") or data_page["data"][tender]["procuringEntity"]["name"] or \
+                                           'Назву не вказано або вказано не вірно'
+
                             ID_tender = data_page["data"][tender]["tenderID"]
                             try:
                                 price = data_page["data"][tender]["value"]["amount"]
