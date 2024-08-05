@@ -205,26 +205,31 @@ async def email(message: types.Message, state: FSMContext):
     if message.text.casefold() == "не змінювати пункт":
         await state.update_data(Email=TenderFilterSetup.update_tender_filter.Email)
     else:
-        await state.update_data(Email=message.text.lower())
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if re.match(email_pattern, message.text):
+            await state.update_data(Email=message.text.lower())
 
-    data = await state.get_data()
+            data = await state.get_data()
 
-    if TenderFilterSetup.update_tender_filter:
-        success = await orm_update_one_data(TenderFilterSetup.update_tender_filter.id, data)
-    else:
-        success = await orm_add_data(data)
+            if TenderFilterSetup.update_tender_filter:
+                success = await orm_update_one_data(TenderFilterSetup.update_tender_filter.id, data)
+            else:
+                success = await orm_add_data(data)
 
-    if success:
-        if TenderFilterSetup.update_tender_filter:
-            await message.answer('Фільтр успішно змінено',
-                                 reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
+            if success:
+                if TenderFilterSetup.update_tender_filter:
+                    await message.answer('Фільтр успішно змінено',
+                                         reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
+                else:
+                    await message.answer('Новий фільтру успішно додано',
+                                         reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
+            else:
+                await message.answer('Виникла внутрішня помилка, будь ласка спробуйте пізніше',
+                                     reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
+            await state.clear()
         else:
-            await message.answer('Новий фільтру успішно додано',
-                                 reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
-    else:
-        await message.answer('Виникла внутрішня помилка, будь ласка спробуйте пізніше',
-                             reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
-    await state.clear()
+            await message.answer('Неправильний формат електронної пошти. Введіть правильну адресу.')
+            await message.answer('Введіть адрес електронної пошти')
 
 
 @client_router.message(F.text.casefold() == "ваші фільтри")
