@@ -7,6 +7,7 @@ from .client_buttons.reply_buttons import action_menu_markup, skip_cancel_markup
 from .client_buttons.inline_buttons import get_callback_btns
 from common.validations_options import status_data, procurement_type_data, regions_data
 from data_base.operations import orm_add_data, orm_get_data, orm_delete_data, orm_get_one_data, orm_update_one_data
+from common.utils import update_filter_or_add_data
 
 client_router = Router()
 
@@ -190,6 +191,8 @@ async def region(message: types.Message, state: FSMContext):
 async def dispatch_time(message: types.Message, state: FSMContext):
     if message.text.casefold() == "не змінювати пункт":
         await state.update_data(Dispatch_time=TenderFilterSetup.update_tender_filter.Dispatch_time)
+        await message.answer('Введіть адрес електронної пошти')
+        await state.set_state(TenderFilterSetup.Email)
     else:
         time_pattern = r'^[0-2]\d:[0-5]\d$'
         if re.match(time_pattern, message.text):
@@ -197,7 +200,7 @@ async def dispatch_time(message: types.Message, state: FSMContext):
             await message.answer('Введіть адрес електронної пошти')
             await state.set_state(TenderFilterSetup.Email)
         else:
-            await message.answer('Неправильний формат часу. Введіть час у форматі HH:MM.')
+            await message.answer('Не вірний формат часу. Введіть час у форматі Години:Хвилини.')
             await message.answer('Введіть час відправлення')
 
 
@@ -205,31 +208,14 @@ async def dispatch_time(message: types.Message, state: FSMContext):
 async def email(message: types.Message, state: FSMContext):
     if message.text.casefold() == "не змінювати пункт":
         await state.update_data(Email=TenderFilterSetup.update_tender_filter.Email)
+        await update_filter_or_add_data(state, message)
     else:
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if re.match(email_pattern, message.text):
             await state.update_data(Email=message.text.lower())
-
-            data = await state.get_data()
-
-            if TenderFilterSetup.update_tender_filter:
-                success = await orm_update_one_data(TenderFilterSetup.update_tender_filter.id, data)
-            else:
-                success = await orm_add_data(data)
-
-            if success:
-                if TenderFilterSetup.update_tender_filter:
-                    await message.answer('Фільтр успішно змінено',
-                                         reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
-                else:
-                    await message.answer('Новий фільтру успішно додано',
-                                         reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
-            else:
-                await message.answer('Виникла внутрішня помилка, будь ласка спробуйте пізніше',
-                                     reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
-            await state.clear()
+            await update_filter_or_add_data(state, message)
         else:
-            await message.answer('Неправильний формат електронної пошти. Введіть правильну адресу.')
+            await message.answer('Не вірний формат електронної пошти. Введіть правильну адресу.')
             await message.answer('Введіть адрес електронної пошти')
 
 
