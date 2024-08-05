@@ -191,13 +191,14 @@ async def dispatch_time(message: types.Message, state: FSMContext):
     if message.text.casefold() == "не змінювати пункт":
         await state.update_data(Dispatch_time=TenderFilterSetup.update_tender_filter.Dispatch_time)
     else:
-        """Removing all characters except digits."""
-        cleaned_time = re.sub(r'\D', '', message.text)
-        """Adding a colon ':' after the first two digits."""
-        formatted_time = cleaned_time[:2] + ":" + cleaned_time[2:]
-        await state.update_data(Dispatch_time=formatted_time)
-    await message.answer('Введіть адрес електронної пошти')
-    await state.set_state(TenderFilterSetup.Email)
+        time_pattern = r'^[0-2]\d:[0-5]\d$'
+        if re.match(time_pattern, message.text):
+            await state.update_data(Dispatch_time=message.text)
+            await message.answer('Введіть адрес електронної пошти')
+            await state.set_state(TenderFilterSetup.Email)
+        else:
+            await message.answer('Неправильний формат часу. Введіть час у форматі HH:MM.')
+            await message.answer('Введіть час відправлення')
 
 
 @client_router.message(TenderFilterSetup.Email, or_f(F.text, F.text.casefold() == "не змінювати пункт"))
