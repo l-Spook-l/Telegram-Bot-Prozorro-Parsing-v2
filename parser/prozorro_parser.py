@@ -1,6 +1,8 @@
+import os
 import aiohttp
 from fake_useragent import UserAgent
 from .url_generator import get_url
+from common.utils import send_error_message
 
 # urls = ["https://prozorro.gov.ua/api/search/tenders?filterType=tenders?region=7-9&status%5B0%5D=active.enquiries",]
 # urls = ["https://prozorro.gov.ua/api/search/tenders?region=7-9&status%5B0%5D=active.enquiries",]
@@ -61,6 +63,7 @@ async def get_json(data_for_parser):
                             list_tenders += [[title, city_company, name_company, ID_tender, price, start_date, link]]
                 list_data.append({'list_tenders': list_tenders, 'total_tenders': total_tenders})
             except Exception as ex:
-                print('Something went wrong')
-                print(f'Error{ex}')
+                error_message = f'Something went wrong for parsing\nError: {ex}'
+                print(error_message)
+                await send_error_message(user_id=os.getenv('ADMIN_USER'), error_message=error_message)
     return list_data
