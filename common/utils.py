@@ -47,3 +47,8 @@ async def update_filter_or_add_data(state: FSMContext, message: types.Message):
     await message.answer(response_message, reply_markup=action_menu_markup.as_markup(resize_keyboard=True),
                          parse_mode="HTML")
     await state.clear()
+
+
+async def send_error_message(user_id: str, error_message: str):
+    from config import bot
+    await bot.send_message(int(user_id), f"An error occurred: {error_message}")
