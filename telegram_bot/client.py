@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from .client_buttons.reply_buttons import action_menu_markup, skip_cancel_markup, skip_cancel_markup_update
 from .client_buttons.inline_buttons import get_callback_btns
 from common.validations_options import status_data, procurement_type_data, regions_data
-from data_base.operations import orm_add_data, orm_get_data, orm_delete_data, orm_get_one_data, orm_update_one_data
+from data_base.operations import orm_get_data, orm_delete_data, orm_get_one_data
 from common.utils import update_filter_or_add_data
 
 client_router = Router()
@@ -32,14 +32,15 @@ class TenderFilterSetup(StatesGroup):
 
 
 @client_router.message(CommandStart())
-async def start_bot(message: types.Message):
+@client_router.message(Command("general_menu"))
+async def start_bot(message: types.Message, state: FSMContext):
     await message.answer("Вітаю, оберіть, що потрібно зробити",
                          reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
-
+    await state.clear()
 
 @client_router.message(Command("help"))
 @client_router.message(F.text.casefold() == "довідка")
-async def help_user(message: types.Message):
+async def help_user(message: types.Message, state: FSMContext):
     await message.answer(
         "Інструкція використання бота."
         "\nУ нашому боті ви можете налаштувати параметри потрібних вам тендерів та отримувати їх на електронну пошту. "
@@ -47,6 +48,7 @@ async def help_user(message: types.Message):
         "\nДля параметру Регіон можна вказати лише одне значення у одному запиті (це обмеження Prozorro), "
         "а для решти параметрів можна вказувати кілька значень, розділивши їх комами."
         "\nЯкщо вы бажаєте дізнатися більше про Prozorro - https://prozorro.gov.ua/about"
+        "\nЯкщо у вас є запитання стосовно Prozorro - https://prozorro.gov.ua/faq"
         "\n"
         "\n       <b><u>Приклад фільтру для тендерів</u></b>"
         "\nДК021:2015: 09300000-2"
@@ -57,7 +59,10 @@ async def help_user(message: types.Message):
         "\nПошта: ваша пошта"
         "\nТакож, якщо вам щось не потрібно, ви можете натиснути кнопку - пропустити."
         "\nКонтакти: uaspookua@gmail.com",
+        reply_markup=action_menu_markup.as_markup(resize_keyboard=True),
         parse_mode="HTML")
+
+    await state.clear()
 
 
 @client_router.message(StateFilter(None), F.text == "Додати новий фільтр")
@@ -73,7 +78,7 @@ async def update_filter(callback_query: types.CallbackQuery, state: FSMContext):
     TenderFilterSetup.update_tender_filter = get_data
     await callback_query.answer()
     await callback_query.message.answer(
-        "Якщо вам не потрібно змінювати пункт, натисніть кнопку 'не змінювати пункт'")
+        "Якщо вам не потрібно змінювати пункт, натисніть кнопку - 'не змінювати пункт'")
     await callback_query.message.answer(
         'Введіть код ДК021:2015', reply_markup=skip_cancel_markup_update.as_markup(resize_keyboard=True)
     )
