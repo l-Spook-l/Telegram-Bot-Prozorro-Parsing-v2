@@ -4,7 +4,7 @@ from data_base.operations import orm_add_data, orm_update_one_data
 from telegram_bot.client_buttons.reply_buttons import action_menu_markup
 
 
-async def get_data_tender(data):
+async def get_data_tender(data) -> list | bool:
     """Implemented data preparation for parsing and subsequent sending to the user via email"""
     data_list = []
     try:
@@ -26,7 +26,7 @@ async def get_data_tender(data):
         return False
 
 
-async def update_filter_or_add_data(state: FSMContext, message: types.Message):
+async def update_filter_or_add_data(state: FSMContext, message: types.Message) -> None:
     from telegram_bot.client import TenderFilterSetup
 
     data = await state.get_data()
@@ -49,6 +49,6 @@ async def update_filter_or_add_data(state: FSMContext, message: types.Message):
     await state.clear()
 
 
-async def send_error_message(user_id: str, error_message: str):
+async def send_error_message(user_id: str, error_message: str) -> None:
     from config import bot
     await bot.send_message(int(user_id), f"An error occurred: {error_message}")
