@@ -1,9 +1,10 @@
 from sqlalchemy import insert, select, delete, update
+from aiogram import types
 from .models import UserFilterTenders
 from .config_db import async_session
 
 
-async def orm_add_data(data) -> bool:
+async def orm_add_data(data: dict) -> bool:
     try:
         async with async_session() as session:
             stat = insert(UserFilterTenders).values(**data)
@@ -15,7 +16,7 @@ async def orm_add_data(data) -> bool:
         return False
 
 
-async def orm_get_data(message):
+async def orm_get_data(message: types.Message) -> list[UserFilterTenders] | bool:
     try:
         async with async_session() as session:
             query = select(UserFilterTenders).filter_by(user=message.from_user.id)
@@ -26,7 +27,7 @@ async def orm_get_data(message):
         return False
 
 
-async def orm_get_one_data(id):
+async def orm_get_one_data(id: int) -> UserFilterTenders | bool:
     try:
         async with async_session() as session:
             query = select(UserFilterTenders).filter_by(id=id)
@@ -37,7 +38,7 @@ async def orm_get_one_data(id):
         return False
 
 
-async def orm_read_time(time_now):
+async def orm_read_time(time_now: str) -> list[UserFilterTenders]:
     try:
         async with async_session() as session:
             query = select(UserFilterTenders).filter_by(Dispatch_time=time_now)
@@ -48,7 +49,7 @@ async def orm_read_time(time_now):
         print(f"Error occurred while check time: {error}")
 
 
-async def orm_update_one_data(id, data):
+async def orm_update_one_data(id, data) -> bool:
     try:
         async with async_session() as session:
             query = update(UserFilterTenders).filter_by(id=id).values(**data)
@@ -60,7 +61,7 @@ async def orm_update_one_data(id, data):
         return False
 
 
-async def orm_delete_data(id):
+async def orm_delete_data(id) -> bool:
     try:
         async with async_session() as session:
             query = delete(UserFilterTenders).filter_by(id=id)
