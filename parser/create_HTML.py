@@ -2,16 +2,16 @@ import aiofiles
 from .prozorro_parser import get_json
 
 
-async def create_file_HTML(index, data):
+async def create_file_HTML(index: int, data: list):
     async with aiofiles.open(f"index_{index}.html", 'w', encoding='utf-8') as file:
         await file.write(' '.join(data))
 
 
-async def create_HTML(data_for_parser):
+async def create_HTML(data_for_parser: list):
     data = await get_json(data_for_parser)
 
     for i in range(len(data)):
-        # HTML file template
+        """"HTML file template"""
         List_HTML_for_email = ['<!doctype html>\n', '<html lang="en">\n', '<head>\n', '    <meta charset="UTF-8">\n',
                                '    <meta name="viewport"\n',
                                '          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">\n',

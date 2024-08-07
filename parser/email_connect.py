@@ -9,7 +9,7 @@ from .create_HTML import create_HTML
 load_dotenv()
 
 
-async def send_email(data):
+async def send_email(data: list):
     await create_HTML(data)
     for i in range(len(data)):
 

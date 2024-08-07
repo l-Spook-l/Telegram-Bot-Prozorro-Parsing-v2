@@ -8,7 +8,7 @@ from common.utils import send_error_message
 # urls = ["https://prozorro.gov.ua/api/search/tenders?region=7-9&status%5B0%5D=active.enquiries",]
 
 
-async def get_json(data_for_parser):
+async def get_json(data_for_parser: list) -> list:
     user_agent = UserAgent()
     random_user_agent = user_agent.chrome
     headers = {

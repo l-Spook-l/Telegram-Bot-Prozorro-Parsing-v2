@@ -1,7 +1,7 @@
-from common.options import status_data, procurement_type_data, regions_data
+from common.validations_options import status_data, procurement_type_data, regions_data
 
 
-async def get_url(data):
+async def get_url(data: list) -> list:
     list_url = []
     for i in range(len(data)):
         filters = ''
@@ -25,7 +25,7 @@ async def get_url(data):
         if Region[0] != 'пропустити':
             filters += regions_data[Region[0]]
 
-        url = f'https://prozorro.gov.ua/api/search/tenders?filterType=tenders{filters}'
+        url = f'https://prozorro.gov.ua/api/search/tenders?{filters}'
         list_url.append(url)
 
     return list_url
