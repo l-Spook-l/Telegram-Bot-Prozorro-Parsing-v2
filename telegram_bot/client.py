@@ -6,8 +6,9 @@ from aiogram.fsm.context import FSMContext
 from .client_buttons.reply_buttons import action_menu_markup, skip_cancel_markup, skip_cancel_markup_update
 from .client_buttons.inline_buttons import get_callback_btns
 from common.validations_options import status_data, procurement_type_data, regions_data
-from data_base.operations import orm_get_data, orm_delete_data, orm_get_one_data
 from common.utils import update_filter_or_add_data
+from data_base.operations import orm_get_data, orm_delete_data, orm_get_one_data
+
 
 client_router = Router()
 
@@ -37,6 +38,7 @@ async def start_bot(message: types.Message, state: FSMContext):
     await message.answer("Вітаю, оберіть, що потрібно зробити",
                          reply_markup=action_menu_markup.as_markup(resize_keyboard=True))
     await state.clear()
+
 
 @client_router.message(Command("help"))
 @client_router.message(F.text.casefold() == "довідка")
