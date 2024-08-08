@@ -49,7 +49,7 @@ async def orm_read_time(time_now: str) -> list[UserFilterTenders]:
         print(f"Error occurred while check time: {error}")
 
 
-async def orm_update_one_data(id, data) -> bool:
+async def orm_update_one_data(id: int, data: dict) -> bool:
     try:
         async with async_session() as session:
             query = update(UserFilterTenders).filter_by(id=id).values(**data)
@@ -61,7 +61,7 @@ async def orm_update_one_data(id, data) -> bool:
         return False
 
 
-async def orm_delete_data(id) -> bool:
+async def orm_delete_data(id: int) -> bool:
     try:
         async with async_session() as session:
             query = delete(UserFilterTenders).filter_by(id=id)
