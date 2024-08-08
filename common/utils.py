@@ -4,6 +4,17 @@ from data_base.operations import orm_add_data, orm_update_one_data
 from telegram_bot.client_buttons.reply_buttons import action_menu_markup
 
 
+async def get_data_send_email(data: list) -> None:
+    from parser.email_connect import send_email
+    try:
+        if data:
+            await send_email(data)
+        else:
+            print('Помилка з отриманням даних')
+    except Exception as e:
+        print(f"Error processing filter: {e}")
+
+
 async def get_data_tender(data) -> list | bool:
     """Implemented data preparation for parsing and subsequent sending to the user via email"""
     data_list = []
