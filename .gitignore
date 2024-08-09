@@ -1,0 +1,6 @@
+.idea
+.venv
+.env
+__pycache__/
+bot_prozorro_run.bat
+bot_prozorro_run.sh
