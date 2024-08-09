@@ -27,10 +27,9 @@ async def check_update_database() -> None:
 
 async def start_bot() -> None:
     print('Bot online!')
-    await bot.delete_webhook(drop_pending_updates=True)  # для сброса накопившихся обновлений
-    # await bot.delete_my_commands(scope=types.BotCommandScopeAllPrivateChats())  # если надо удалить меню команд
+    await bot.delete_webhook(drop_pending_updates=True)
     await bot.set_my_commands(commands=private, scope=types.BotCommandScopeAllPrivateChats())
-    await dp.start_polling(bot)  # урок #3 ограничить типы обновлений !!!!!!!!!!!!!!!
+    await dp.start_polling(bot)
 
 
 async def main() -> None:
