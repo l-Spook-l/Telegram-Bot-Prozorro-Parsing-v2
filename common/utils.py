@@ -46,13 +46,13 @@ async def update_filter_or_add_data(state: FSMContext, message: types.Message) -
         success = await orm_update_one_data(TenderFilterSetup.update_tender_filter.id, data)
         response_message = \
             ("<b><u>Фільтр успішно змінено</u></b> "
-             "\nБудь ласка переконайтися, що усі пункти вірні, натиснувши кнопку - 'Ваші запити'") \
+             "\nБудь ласка переконайтися, що усі пункти вірні, натиснувши кнопку - 'Ваші фільтри'") \
                 if success else "Виникла внутрішня помилка, будь ласка спробуйте пізніше"
     else:
         success = await orm_add_data(data)
         response_message = \
             ("<b><u>Новий фільтру успішно додано</u></b>"
-             "\n Будь ласка переконайтися, що усі пункти вірні, натиснувши кнопку - 'Ваші запити'") \
+             "\n Будь ласка переконайтися, що усі пункти вірні, натиснувши кнопку - 'Ваші фільтри'") \
                 if success else "Виникла внутрішня помилка, будь ласка спробуйте пізніше"
 
     await message.answer(response_message, reply_markup=action_menu_markup.as_markup(resize_keyboard=True),
